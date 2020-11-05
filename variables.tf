@@ -3,7 +3,7 @@ variable "image_name" {
   default = "controller:latest"
 }
 
-variable "resource" {
+variable "resources" {
   type = list(object({
     domain  = string
     group   = string

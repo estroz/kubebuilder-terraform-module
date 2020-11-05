@@ -5,8 +5,9 @@
 *.tfstate
 *.tfstate.*
 
-# Crash log files
+# Log files
 crash.log
+dev.log
 
 # Ignore any .tfvars files that are generated automatically for each Terraform run. Most
 # .tfvars files are managed as part of configuration and so should be included in

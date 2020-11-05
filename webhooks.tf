@@ -1,35 +1,47 @@
-resource "kubernetes_service" "webhook-service" {
-  metadata {
-    name      = "webhook-service"
-    namespace = "system"
-  }
-  spec {
-    port {
-      port        = 443
-      target_port = 9443
-    }
-    selector = {
-      control-plane = "controller-manager"
+resource "kubernetes_manifest" "mutatingwebhookconfiguration_mutating_webhook_configuration_ca_injection_patch" {
+  manifest = {
+    apiVersion = "admissionregistration.k8s.io/v1beta1"
+    kind       = "MutatingWebhookConfiguration"
+    metadata = {
+      annotations = {
+        "cert-manager.io/inject-ca-from" = "$(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)"
+      }
+      name = "mutating-webhook-configuration"
     }
   }
 }
 
-# TODO: generated webhooks should have .spec.webhooks.clientConfig.service.{name,namespace}
-# substituted with that of the service.
+resource "kubernetes_manifest" "validatingwebhookconfiguration_validating_webhook_configuration_ca_injection_patch" {
+  manifest = {
+    apiVersion = "admissionregistration.k8s.io/v1beta1"
+    kind       = "ValidatingWebhookConfiguration"
+    metadata = {
+      annotations = {
+        "cert-manager.io/inject-ca-from" = "$(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)"
+      }
+      name = "validating-webhook-configuration"
+    }
+  }
+}
 
-# TODO: figure out how to conditionally patch webhooks with cert annotations.
-/*
-apiVersion: admissionregistration.k8s.io/v1beta1
-kind: MutatingWebhookConfiguration
-metadata:
-  name: mutating-webhook-configuration
-  annotations:
-    cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
----
-apiVersion: admissionregistration.k8s.io/v1beta1
-kind: ValidatingWebhookConfiguration
-metadata:
-  name: validating-webhook-configuration
-  annotations:
-    cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
-*/
+resource "kubernetes_manifest" "service_webhook_service" {
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Service"
+    metadata = {
+      name      = "webhook-service"
+      namespace = "system"
+    }
+    spec = {
+      ports = [
+        {
+          port       = 443
+          targetPort = 9443
+        },
+      ]
+      selector = {
+        control-plane = "controller-manager"
+      }
+    }
+  }
+}
